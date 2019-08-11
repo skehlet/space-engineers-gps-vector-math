@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+	<meta charset="utf-8">
+	<title>Space Engineers Star System 3D Vector math between planets/moons</title>
+	<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans">
+    <style type="text/css">
+/* CSS borrowed from https://thebestmotherfucking.website/ */
+html {
+    background-color: #fefefe
+}
+
+body {
+    font-family: Open Sans, Arial;
+    color: #454545;
+    font-size: 16px;
+    margin: 2em auto;
+    max-width: 800px;
+    padding: 1em;
+    line-height: 1.4;
+    text-align: justify
+}
+
+a {
+    color: #07a
+}
+
+a:visited {
+    color: #941352
+}
+
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none
+}
+
+small {
+    font-size: .4em
+}
+
+ul li img {
+    height: 1em
+}
+
+@media screen and (max-width:500px) {
+    body {
+        text-align: left
+    }
+}
+
+div#work {
+	display: none;
+    font-family: monospace;
+    font-size: .9em;
+	border: 1px solid black;
+	padding: 1em;
+	line-height: 1;
+}
+	</style>
+	<script
+	  src="https://code.jquery.com/jquery-3.4.1.min.js"
+	  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+	  crossorigin="anonymous"></script>
+	<script>
+		function clearWork() {
+			$('#work').empty().show();
+		}
+
+		function showWork(str) {
+			$('#work').append("<p>" + str + "</p>");
+		}
+		
+		// https://stackoverflow.com/a/596503/296829
+		function toInt(value) {
+			return ~~value;
+		}
+		
+		function doTheMath() {
+			var x0 = parseFloat($('#x0').val());
+			var y0 = parseFloat($('#y0').val());
+			var z0 = parseFloat($('#z0').val());
+			var x1 = parseFloat($('#x1').val());
+			var y1 = parseFloat($('#y1').val());
+			var z1 = parseFloat($('#z1').val());
+			var dt = parseFloat($('#dt').val());
+			
+			clearWork();
+			//showWork("x0: " + x0 + ", y0: " + y0 + ", z0: " + z0);
+			//showWork("x1: " + x1 + ", y1: " + y1 + ", z1: " + z1);
+			
+			// distance formula
+			// d(p0, p1) = sqrt( (x1 - x0)^2 + (y1 - y0)^2 + (z1 - z0)^2 )
+			var d = Math.sqrt(
+				Math.pow(x1 - x0, 2) +
+				Math.pow(y1 - y0, 2) +
+				Math.pow(z1 - z0, 2)
+			);
+		
+			// Let the ratio of distances, t = dt / d
+			var t = dt / d; // add 0 error check
+			//showWork("d: " + d + ", dt: " + dt + ", t: " + t);
+			
+			// https://math.stackexchange.com/a/1630886/102799
+			// (xt, yt) = ( ( (1−t)x0 + tx1 ),( (1−t)y0 + ty1 ) )
+			var xt = (1 - t) * x0 + t * x1;
+			var yt = (1 - t) * y0 + t * y1;
+			var zt = (1 - t) * z0 + t * z1;
+			
+			xt = toInt(xt);
+			yt = toInt(yt);
+			zt = toInt(zt);
+			
+			//showWork("xt: " + xt);
+			//showWork("yt: " + yt);
+			//showWork("zt: " + zt);
+			showWork("GPS coordinates for the point " + dt + "m along the line");
+			showWork(" from (" + x0 + ", " + y0 + ", " + z0 + ") to (" + x1 + ", " + y1 + ", " + z1 + ") are:");
+			showWork("<b>(" + xt + ", " + yt + ", " + zt + ")</b>");
+		}
+
+		function getCoordsForPlanet(planet) {
+			// https://www.reddit.com/r/spaceengineers/comments/9175ds/what_are_the_gps_coordinates_for_the_planets/
+			switch (planet) {
+				case 'Earth':
+					return [0, 0, 0];
+				case 'Moon':
+					return [16384, 136384, -113616];
+				case 'Mars':
+					return [1031072, 131072, 1631072];
+				case 'Europa':
+					return [916384, 16384, 1616384];
+				case 'Alien':
+					return [131072, 131072, 5731072];
+				case 'Titan':
+					return [36384, 226384, 5796384];
+			}
+		}
+		
+		function updateCoords(point, planet) {
+			var x, y, z;
+			if (point === '0') {
+				x = $('#x0');
+				y = $('#y0');
+				z = $('#z0');
+			} else {
+				x = $('#x1');
+				y = $('#y1');
+				z = $('#z1');
+			}
+			var coords = getCoordsForPlanet(planet);
+			x.val(coords[0]);
+			y.val(coords[1]);
+			z.val(coords[2]);
+		}
+
+		function updateCoords0() {
+			updateCoords('0', $('#choice0').val());
+		}
+		
+		function updateCoords1() {
+			updateCoords('1', $('#choice1').val());
+		}
+
+		$(document).ready(function () {
+			$('#clicker').click(doTheMath);
+			$('#choice0').change(updateCoords0);
+			$('#choice1').change(updateCoords1);
+			updateCoords0();
+			updateCoords1();
+		});
+	</script>
+</head>
+<body>
+	<h3>Space Engineers Star System 3D Vector math between planets/moons</h3>
+	<form>
+	<p>
+	Point 0:
+	<select id="choice0">
+		<option value="Earth">Earth</option>
+		<option value="Moon">Moon</option>
+		<option value="Mars">Mars</option>
+		<option value="Europa">Europa</option>
+		<option value="Alien">Alien</option>
+		<option value="Titan">Titan</option>
+	</select>
+	<b>OR</b>
+	x: <input id="x0" value="0" size="10">, y: <input id="y0" value="0" size="10">, z: <input id="z0" value="0" size="10">
+	</p>
+	<p>
+	Point 1:
+	<select id="choice1">
+		<option value="Earth">Earth</option>
+		<option value="Moon" selected>Moon</option>
+		<option value="Mars">Mars</option>
+		<option value="Europa">Europa</option>
+		<option value="Alien">Alien</option>
+		<option value="Titan">Titan</option>
+	</select>
+	<b>OR</b>
+	x: <input id="x1" value="0" size="10">, y: <input id="y1" value="0" size="10">, z: <input id="z1" value="0" size="10">
+	</p>
+	<p>
+	Distance along line starting from Point 0: <input id="dt" size="10" value="105000">m
+	</p>
+	<p>
+	<input type="button" id="clicker" value="Click me">
+	</p>
+	</form>
+
+	<p>
+	<div id="work"></div>
+	</p>
+
+	<p><b>Notes</b>:
+		<ul>
+		<li>Radii: From center to surface, planets are about 60km and moons 9.5km (mountains and terrain will extend the radius).
+		<li>Gravity wells: From their surface, planets are about 42km and moons 3.5km.
+		<li>Safe minimum distances from the centers for jump drive destinations are:
+			<ul>
+			<li>105000m (60km radius + 42km gravity well + 3km buffer) for planets
+			<li>15000m (9.5km radius + 3.5km gravity well + 2km buffer) for moons.
+			</ul>
+		</ul>
+	</p>
+	<p><b>References</b>:
+		<ul>
+		<li><a href="https://www.reddit.com/r/spaceengineers/comments/9175ds/what_are_the_gps_coordinates_for_the_planets/"
+			>What are the GPS coordinates for the planets?</a>
+		<li><a href="https://www.reddit.com/r/spaceengineers/comments/7l5pbm/does_anyone_have_planet_radius_measurements/"
+			>Does anyone have Planet Radius measurements?</a>
+		<li><a href="https://www.math.usm.edu/lambers/mat169/fall09/lecture17.pdf"
+			>Three-Dimensional Coordinate Systems; The Distance Formula</a>
+		<li><a href="https://math.stackexchange.com/a/1630886/102799"
+			>Finding a point along a line a certain distance away from another point!</a>
+		</ul>
+	</p>
+</body>
+</html>
